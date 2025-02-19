@@ -682,3 +682,74 @@ table(test_set$TRUTH, final_result_class)
 
 
 
+
+
+lol you might have this already? 
+
+
+
+```{r}
+
+# Load necessary libraries
+library(rpart)
+library(caTools)
+
+# Split the data
+split_vals <- sample.split(df3_narm$TRUTH, SplitRatio = 0.80)
+train_set <- subset(df3_narm, split_vals == TRUE)
+test_set <- subset(df3_narm, split_vals == FALSE)
+
+# Remove unnecessary columns
+train_set_split <- train_set[, -(1:8)]
+
+# Create a dataframe to store the results of each model's performance
+results_df <- data.frame(cp = numeric(), maxdepth = numeric(), minsplit = numeric(), accuracy = numeric())
+
+# Loop over each combination of hyperparameters
+for(i in 1:nrow(param_grid)) {
+  # Set the current hyperparameters
+  cp_val <- param_grid$cp[i]
+  maxdepth_val <- param_grid$maxdepth[i]
+  minsplit_val <- param_grid$minsplit[i]
+  
+  # Train the model with the current hyperparameters
+  mod_class <- rpart(as.factor(TRUTH) ~ ., data = train_set_split, 
+                     control = rpart.control(cp = cp_val, maxdepth = maxdepth_val, minsplit = minsplit_val))
+  
+  # Make predictions
+  result_class <- predict(mod_class, test_set, type = 'class')
+  
+  # Calculate accuracy
+  accuracy <- sum(result_class == test_set$TRUTH) / nrow(test_set)
+  
+  # Save the results
+  results_df <- rbind(results_df, data.frame(cp = cp_val, maxdepth = maxdepth_val, minsplit = minsplit_val, accuracy = accuracy))
+}
+
+# Print the results of the grid search
+print(results_df)
+
+
+
+
+
+
+```
+
+
+finding the best model:
+
+```{r}
+
+
+# Get the best model based on accuracy
+best_model <- results_df[which.max(results_df$accuracy), ]
+print(best_model)
+
+
+
+
+```
+
+
+
